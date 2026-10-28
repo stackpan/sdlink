@@ -70,6 +70,21 @@
   "command.verifiedaccounts.no_accounts": "There are no verified accounts for this discord",
   "command.verifiedaccounts.title_page": "Verified Accounts - Page %s/%s",
 
+  "command.giveaway.join": "Join a giveaway",
+  "command.giveaway.already_joined": "You have already joined the giveaway!",
+  "command.giveaway.modal_title": "Join Giveaway",
+  "command.giveaway.wish": "What is your wish?",
+  "command.giveaway.wish_placeholder": "Tell us what you wish for if you win",
+  "command.giveaway.wish_non_premium": "Minecraft account",
+  "command.giveaway.auto_joined": "You have joined the giveaway with the wish: Minecraft account",
+  "command.giveaway.select_prize": "Select your prize",
+  "command.giveaway.select_prize_message": "Please select your prize from the options below:",
+  "command.giveaway.prize_selected": "You have selected: %s",
+  "command.giveaway.other_wish_title": "Custom Wish Request",
+  "command.giveaway.other_wish_label": "Please tell us your wish request",
+  "command.giveaway.other_wish_placeholder": "Reward value 14-20 USD, non-subscription item",
+  "command.giveaway.other_wish_saved": "Your custom wish has been recorded: %s",
+
   "message.attachments": "(%s attachments)",
   "message.replied_to": "Replied to %s: %s",
 
