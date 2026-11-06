@@ -19,6 +19,7 @@ import com.hypherionmc.sdlink.util.Debugger;
 import com.hypherionmc.sdlink.util.translations.SDText;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.minecraft.server.MinecraftServer;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,10 +50,18 @@ public final class SDLinkMinecraftBridge {
                 SDLinkRelayClient.INSTANCE.relayMessage(relayMessage);
             }
 
-            ServerEvents.getInstance().getMinecraftServer().broadcastSystemMessage(
-                    component,
-                    false
-            );
+            if (SDLinkConfig.INSTANCE.generalConfig.largeServer) {
+                // Do NOT fall back to original method.
+                try {
+                    ServerEvents.getInstance().getMinecraftServer().broadcastPrivateMessage(component, false);
+                } catch (NoSuchMethodError ignored) {}
+            } else {
+                try {
+                    ServerEvents.getInstance().getMinecraftServer().broadcastPrivateMessage(component, false);
+                } catch (NoSuchMethodError e) {
+                    ServerEvents.getInstance().getMinecraftServer().broadcastSystemMessage(component, false);
+                }
+            }
 
         } catch (Exception e) {
             Debugger.INSTANCE.log("Failed to send message: {}", e.getMessage());

@@ -2,8 +2,10 @@ package com.hypherionmc.sdlink.core.jsondb;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.hypherionmc.sdlink.core.config.SDLinkConfig;
 import com.hypherionmc.sdlink.core.jsondb.annotations.Document;
 import com.hypherionmc.sdlink.core.jsondb.annotations.Id;
+import com.hypherionmc.sdlink.util.EncryptionUtil;
 
 import java.io.*;
 import java.util.*;
@@ -60,7 +62,7 @@ public class JsonDatabase {
                     skipHeader = false;
                     continue;
                 }
-                entries.add(gson.fromJson(line, clazz));
+                entries.add(gson.fromJson(EncryptionUtil.INSTANCE.decrypt(line), clazz));
             }
             return entries;
         } catch (IOException e) {
@@ -122,11 +124,19 @@ public class JsonDatabase {
             // Just keeping compat with the old DB engine
             writer.write("{\"schemaVersion\":\"1.0\"}\n");
             for (Object entry : entries) {
-                writer.write(gson.toJson(entry) + "\n");
+                writer.write(writeJson(gson.toJson(entry)) + "\n");
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to save collection: " + collectionName, e);
         }
+    }
+
+    private String writeJson(String json) {
+        if (SDLinkConfig.INSTANCE.generalConfig.largeServer) {
+            return EncryptionUtil.INSTANCE.encrypt(json);
+        }
+
+        return json;
     }
 
     private String getCollectionName(Class<?> clazz) {
