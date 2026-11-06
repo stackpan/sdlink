@@ -162,9 +162,8 @@ public final class BotController {
             CommandClient commandClient = clientBuilder.build();
             CommandManager.INSTANCE.register(commandClient);
 
-            _jda = JDABuilder.createLight(
+            JDABuilder builder = JDABuilder.createLight(
                             token,
-                            GatewayIntent.GUILD_MEMBERS,
                             GatewayIntent.GUILD_MESSAGES,
                             GatewayIntent.MESSAGE_CONTENT,
                             GatewayIntent.GUILD_MESSAGE_REACTIONS,
@@ -174,11 +173,19 @@ public final class BotController {
                     .addEventListeners(commandClient, eventWaiter, new DiscordEventHandler())
                     .setAutoReconnect(true)
                     .enableCache(CacheFlag.EMOJI)
-                    .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .setChunkingFilter(ChunkingFilter.ALL)
+                    .setMemberCachePolicy(MemberCachePolicy.DEFAULT)
                     .setBulkDeleteSplittingEnabled(true)
-                    .setEventManager(new ThreadedEventManager())
-                    .build();
+                    .setEventManager(new ThreadedEventManager());
+
+            if (SDLinkConfig.INSTANCE.accessControl.enabled || SDLinkConfig.INSTANCE.accessControl.optionalVerification) {
+                builder.enableIntents(GatewayIntent.GUILD_MEMBERS);
+                builder.setMemberCachePolicy(MemberCachePolicy.ALL);
+                logger.warn("Enabling GUILD_MEMBERS intent. Please make sure you are allowed to use this");
+            }
+
+        _jda = builder.build();
+
         } catch (Exception e) {
             logger.error("Failed to connect to discord", e);
         }

@@ -87,7 +87,7 @@ public final class PermissionChecker {
                 Guild guild = controller.getJDA().getGuilds().get(0);
 
                 if (guild != null) {
-                    Member bot = guild.getMemberById(controller.getJDA().getSelfUser().getIdLong());
+                    Member bot = guild.getSelfMember();
                     EnumSet<Permission> botPerms = bot.getPermissionsExplicit();
 
                     RoleManager.loadRequiredRoles(errCount, builder);

@@ -26,6 +26,10 @@ public final class GeneralConfigSettings {
     @SpecComment("The active language to use for built in messages. Defaults to en_us if a language is not found")
     public String language = "en_us";
 
+    @Path("largeServer")
+    @SpecComment("Stop chat messages from showing up in the logs, and encrypt the access control database. Required for bots going through verification")
+    public boolean largeServer = false;
+
     @Path("configVersion")
     @SpecComment("Internal version control. DO NOT TOUCH!")
     public int configVersion = SDLinkConfig.configVer;
