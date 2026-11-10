@@ -4,6 +4,7 @@
  */
 package com.hypherionmc.sdlink.core.managers;
 
+import com.hypherionmc.sdlink.core.database.GiveawayEntry;
 import com.hypherionmc.sdlink.core.database.HiddenPlayers;
 import com.hypherionmc.sdlink.core.database.SDLinkAccount;
 import com.hypherionmc.sdlink.core.jsondb.JsonDatabase;
@@ -26,6 +27,7 @@ public final class DatabaseManager {
     private final Set<Class<?>> tables = new LinkedHashSet<>() {{
         add(SDLinkAccount.class);
         add(HiddenPlayers.class);
+        add(GiveawayEntry.class);
     }};
 
     DatabaseManager() {
@@ -53,6 +55,11 @@ public final class DatabaseManager {
 
     private void reload(Class<?> clazz) {
         sdlinkDatabase.reloadCollection(clazz.getAnnotation(Document.class).collection(), clazz);
+    }
+
+    public <T> T findBy(String key, Object value, Class<T> entityClass) {
+        reload(entityClass);
+        return sdlinkDatabase.findBy(key, value, entityClass);
     }
 
     public <T> T findById(Object id, Class<T> entityClass) {

@@ -20,13 +20,12 @@ import com.hypherionmc.sdlink.core.discord.hooks.MinecraftCommandHook;
 import com.hypherionmc.sdlink.core.managers.CacheManager;
 import com.hypherionmc.sdlink.core.managers.ChannelManager;
 import com.hypherionmc.sdlink.core.managers.DatabaseManager;
-import com.hypherionmc.sdlink.core.managers.GiveawayStorage;
 import com.hypherionmc.sdlink.core.managers.PermissionChecker;
-import com.hypherionmc.sdlink.core.managers.PremiumDetector;
 import com.hypherionmc.sdlink.core.services.SDLinkPlatform;
 import com.hypherionmc.sdlink.util.PKUtil;
-import com.hypherionmc.sdlink.util.translations.SDText;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
@@ -41,7 +40,6 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.role.RoleCreateEvent;
@@ -50,12 +48,9 @@ import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
-import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
-import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.requests.CloseCode;
 import org.jetbrains.annotations.NotNull;
 
@@ -161,128 +156,6 @@ public final class DiscordEventHandler extends ListenerAdapter {
         if (event.getComponentId().equals("sdrefreshbtn")) {
             event.deferEdit().queue(s -> s.editOriginalEmbeds(ServerStatusSlashCommand.runStatusCommand()).queue());
         }
-    }
-
-    /**
-     * A modal was submitted. Handles the /joingiveaway wish submission.
-     */
-    @Override
-    public void onModalInteraction(@NotNull ModalInteractionEvent event) {
-        String modalId = event.getModalId();
-
-        if ("giveaway_other_wish".equals(modalId)) {
-            String discordId = event.getUser().getId();
-
-            String otherWish = event.getValues().stream()
-                    .filter(value -> value.getId().equals("giveaway_other_wish"))
-                    .map(ModalMapping::getAsString)
-                    .findFirst()
-                    .orElse("");
-
-            GiveawayEntry entry = new GiveawayEntry();
-            entry.setDiscordId(discordId);
-            entry.setOtherWish(otherWish);
-
-            GiveawayStorage.INSTANCE.upsert(entry);
-
-            event.getHook().sendMessage(SDText.translate("command.giveaway.other_wish_saved", otherWish).toString()).setEphemeral(true).queue();
-            return;
-        }
-
-        if (!"join_giveaway".equals(modalId)) {
-            return;
-        }
-
-        String discordId = event.getUser().getId();
-        String discordUsername = event.getUser().getName();
-
-        String wish = event.getValues().stream()
-                .filter(value -> value.getId().equals("giveaway_wish"))
-                .map(ModalMapping::getAsString)
-                .findFirst()
-                .orElse("");
-
-        SDLinkAccount account = DatabaseManager.INSTANCE.getCollection(SDLinkAccount.class).stream()
-                .filter(a -> a.getDiscordID() != null && a.getDiscordID().equals(discordId))
-                .findFirst()
-                .orElse(null);
-
-        String minecraftUuid = "";
-        String minecraftUsername = "";
-        boolean isPremium = false;
-
-        if (account != null) {
-            minecraftUuid = account.getUuid();
-            minecraftUsername = account.getInGameName();
-            isPremium = PremiumDetector.isPremium(minecraftUuid, minecraftUsername);
-        }
-
-        GiveawayEntry entry = new GiveawayEntry();
-        entry.setDiscordId(discordId);
-        entry.setDiscordUsername(discordUsername);
-        entry.setMinecraftUuid(minecraftUuid);
-        entry.setMinecraftUsername(minecraftUsername);
-        entry.setPremium(isPremium);
-        entry.setWish(wish);
-        entry.setPrize("");
-
-        GiveawayStorage.INSTANCE.upsert(entry);
-
-        StringSelectMenu selectMenu = StringSelectMenu.create("giveaway_prize_select")
-                .setPlaceholder(SDText.translate("command.giveaway.select_prize").toString())
-                .addOptions(SelectOption.of("Minecraft: Dungeons 1", "minecraft_dungeons_1"))
-                .addOptions(SelectOption.of("1720 Minecoin", "minecoin_1720"))
-                .addOptions(SelectOption.of("Wynncraft HERO Rank", "wynncraft_hero"))
-                .addOptions(SelectOption.of("Wynncraft 20 cosmetics crates", "wynncraft_crates"))
-                .addOptions(SelectOption.of("Hypixel VIP+ Rank", "hypixel_vip_plus"))
-                .addOptions(SelectOption.of("Hypixel 1800 SkyBlock Gems", "hypixel_skyblock_gems"))
-                .addOptions(SelectOption.of("Hypixel Jungle Companion Bundle", "hypixel_jungle_companion"))
-                .addOptions(SelectOption.of("DonutSMP 12000 Shards", "donutsmp_shards"))
-                .addOptions(SelectOption.of("PvP Club VIP Rank", "pvp_club_vip"))
-                .addOptions(SelectOption.of("Hoplite Starter Pack", "hoplite_starter"))
-                .addOptions(SelectOption.of("Hoplite 2500 Gems", "hoplite_gems"))
-                .addOptions(SelectOption.of("Other", "other"))
-                .setMinValues(1)
-                .setMaxValues(1)
-                .build();
-
-        event.getHook().sendMessage(SDText.translate("command.giveaway.select_prize_message").toString())
-                .addComponents(ActionRow.of(selectMenu))
-                .setEphemeral(true)
-                .queue();
-    }
-
-    @Override
-    public void onStringSelectInteraction(@NotNull StringSelectInteractionEvent event) {
-        if (!event.getComponentId().equals("giveaway_prize_select")) {
-            return;
-        }
-
-        String discordId = event.getUser().getId();
-        String selectedPrize = event.getValues().get(0);
-
-        if ("other".equals(selectedPrize)) {
-            TextInput otherWish = TextInput.create("giveaway_other_wish", SDText.translate("command.giveaway.other_wish_label").toString(), TextInputStyle.PARAGRAPH)
-                    .setPlaceholder(SDText.translate("command.giveaway.other_wish_placeholder").toString())
-                    .setRequired(true)
-                    .setMaxLength(50)
-                    .build();
-
-            Modal modal = Modal.create("giveaway_other_wish", SDText.translate("command.giveaway.other_wish_title").toString())
-                    .addComponents(ActionRow.of(otherWish))
-                    .build();
-
-            event.replyModal(modal).queue();
-            return;
-        }
-
-        GiveawayEntry entry = new GiveawayEntry();
-        entry.setDiscordId(discordId);
-        entry.setPrize(selectedPrize);
-
-        GiveawayStorage.INSTANCE.upsert(entry);
-
-        event.getHook().editOriginal(SDText.translate("command.giveaway.prize_selected", selectedPrize).toString()).queue();
     }
 
     @Override
@@ -411,6 +284,42 @@ public final class DiscordEventHandler extends ListenerAdapter {
     @Override
     public void onEmojiUpdateRoles(EmojiUpdateRolesEvent event) {
         CacheManager.loadEmoteCache();
+    }
+
+    @Override
+    public void onStringSelectInteraction(StringSelectInteractionEvent event) {
+        if (event.getComponentId().equals("join-giveaway-wish-option")) {
+            event.deferEdit().queue();
+
+            String selectedLabel = event.getSelectedOptions().get(0).getLabel();
+
+            Member member = event.getMember();
+
+            assert member != null;
+            SDLinkAccount account = DatabaseManager.INSTANCE.findBy("discordID", member.getId(), SDLinkAccount.class);
+
+            GiveawayEntry giveawayEntry = new GiveawayEntry(account.getUuid(), member.getId(), account.getInGameName(), selectedLabel);
+            DatabaseManager.INSTANCE.updateEntry(giveawayEntry);
+
+            event.getHook().editOriginal(String.format("Berhasil mendaftarkan **%s** sebagai peserta giveaway. Reward yang dipilih: **%s**.", giveawayEntry.getUsername(), giveawayEntry.getWish()))
+                    .setComponents()
+                    .queue();
+
+            String info = "Halo! Pendaftaran awal giveaway FesnukCraft kamu sudah berhasil.\n\n" +
+                    "Satu langkah lagi agar resmi masuk ke dalam giveaway pool: kamu perlu membangun base terbaikmu di server!\n\n" +
+                    "Detail lengkap dan ketentuan bisa kamu cek di thread berikut:\n" +
+                    "🔗 https://discord.com/channels/1206212469148749834/1562463504106127391/1562463509512585288\n\n" +
+                    "Good luck, dan selamat bermain! 🏰";
+
+            event.getUser().openPrivateChannel()
+                    .flatMap(channel -> channel.sendMessage(info)) // Rantai RestAction
+                    .queue(
+                            message -> System.out.println("DM terkirim!"),
+                            failure -> event.getHook().sendMessage(info)
+                                    .setEphemeral(true)
+                                    .queue()
+                    );
+        }
     }
 
     private void startReadyDetection(JDA jda) {

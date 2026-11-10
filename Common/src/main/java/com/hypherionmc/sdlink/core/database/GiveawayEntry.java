@@ -1,26 +1,20 @@
-/*
- * This file is part of sdlink-core, licensed under the MIT License (MIT).
- * Copyright HypherionSA and Contributors
- */
 package com.hypherionmc.sdlink.core.database;
 
+import com.hypherionmc.sdlink.core.jsondb.annotations.Document;
+import com.hypherionmc.sdlink.core.jsondb.annotations.Id;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * @author HypherionSA
- * Represents a giveaway entry submitted via the /joingiveaway modal
- */
-@Getter
 @Setter
-public class GiveawayEntry {
+@Getter
+@AllArgsConstructor
+@Document(collection = "giveawayentries")
+public final class GiveawayEntry {
 
-    private String discordId;
-    private String discordUsername;
-    private String minecraftUuid;
-    private String minecraftUsername;
-    private boolean isPremium;
+    @Id
+    private String uuid;
+    private String discordID;
+    private String username;
     private String wish;
-    private String prize;
-    private String otherWish;
 }

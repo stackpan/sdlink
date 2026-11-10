@@ -9,7 +9,7 @@ import com.hypherionmc.sdlink.api.events.SlashCommandRegistrationEvent;
 import com.hypherionmc.sdlink.core.discord.commands.slash.general.HelpSlashCommand;
 import com.hypherionmc.sdlink.core.discord.commands.slash.general.PlayerListSlashCommand;
 import com.hypherionmc.sdlink.core.discord.commands.slash.general.ServerStatusSlashCommand;
-import com.hypherionmc.sdlink.core.discord.commands.slash.giveaway.JoinGiveawayCommand;
+import com.hypherionmc.sdlink.core.discord.commands.slash.giveaway.JoinGiveawaySlashCommand;
 import com.hypherionmc.sdlink.core.discord.commands.slash.hide.HiddenPlayersCommand;
 import com.hypherionmc.sdlink.core.discord.commands.slash.hide.HidePlayerCommand;
 import com.hypherionmc.sdlink.core.discord.commands.slash.hide.UnhidePlayerCommand;
@@ -57,8 +57,7 @@ public final class CommandManager {
         // Enable the Help command
         commands.add(new HelpSlashCommand());
 
-        // Enable the Join Giveaway command
-        commands.add(new JoinGiveawayCommand());
+        commands.add(new JoinGiveawaySlashCommand());
 
         // SetChannel config Command
         commands.add(new SetChannelCommand());

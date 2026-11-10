@@ -113,6 +113,28 @@ public class JsonDatabase {
         }
     }
 
+    // Find by key
+    public <T> T findBy(String key, Object value, Class<T> clazz) {
+        String collectionName = getCollectionName(clazz);
+        lockRead(collectionName);
+        try {
+            return reloadCollection(collectionName, clazz).stream()
+                    .filter(entry -> {
+                        try {
+                            var field = clazz.getDeclaredField(key);
+                            field.setAccessible(true);
+                            return value.equals(field.get(entry));
+                        } catch (NoSuchFieldException | IllegalAccessException e) {
+                            return false;
+                        }
+                    })
+                    .findFirst()
+                    .orElse(null);
+        } finally {
+            unlockRead(collectionName);
+        }
+    }
+
     // Get all entries
     public <T> List<T> getCollection(Class<T> clazz) {
         return reloadCollection(getCollectionName(clazz), clazz);
